@@ -1,14 +1,8 @@
-/*
- * jest-dom adds custom jest matchers for asserting on DOM nodes.
- * allows you to do things like:
- * expect(element).toHaveTextContent(/react/i)
- * learn more: https://github.com/testing-library/jest-dom
- */
-import '@testing-library/jest-dom/extend-expect';
-import 'micro-observables/batchingForReactDom';
-import 'shared/prototypes';
-
 import Schema from 'async-validator';
+import { JSDOM } from 'jsdom';
+import 'micro-observables/batchingForReactDom';
+import td from 'testdouble';
+import 'whatwg-fetch';
 
 import { noOp } from 'shared/utils/service';
 
@@ -18,15 +12,30 @@ import { noOp } from 'shared/utils/service';
  */
 Schema.warning = noOp;
 
+const dom = new JSDOM('<!DOCTYPE html>', {
+  pretendToBeVisual: true,
+  runScripts: 'dangerously',
+  url: 'http://localhost/',
+});
+
+// @ts-expect-error jsdom has missing globals
+globalThis.global = globalThis.window = dom.window;
+globalThis.document = dom.window.document;
+
+// misc. globals
+globalThis.Storage = dom.window.Storage;
+
+require('shared/prototypes');
+
 Object.defineProperty(window, 'matchMedia', {
   value: () => ({
-    addEventListener: jest.fn(),
-    addListener: jest.fn(), // deprecated
-    dispatchEvent: jest.fn(),
+    addEventListener: td.function(),
+    addListener: td.function(), // deprecated
+    dispatchEvent: td.function(),
     matches: false,
     onchange: null,
-    removeEventListener: jest.fn(),
-    removeListener: jest.fn(), // deprecated
+    removeEventListener: td.function(),
+    removeListener: td.function(), // deprecated
   }),
 });
 

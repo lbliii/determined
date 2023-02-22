@@ -8,8 +8,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
-    'plugin:jest/recommended',
-    'plugin:jest/style',
+    'plugin:ava/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
     'prettier', // prettier should be the last
@@ -70,7 +69,6 @@ module.exports = {
       },
     ],
     'indent': 'off',
-    'jest/valid-title': 'off',
     'jsdoc/check-access': 1,
     'jsdoc/check-alignment': 1,
     'jsdoc/check-param-names': 1,
@@ -177,7 +175,6 @@ module.exports = {
   },
   settings: {
     'import/resolver': { typescript: {} }, // This loads <rootdir>/tsconfig.json to eslint
-    'jest': { version: 'detect' },
     'react': { version: 'detect' },
   },
 };

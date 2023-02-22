@@ -105,7 +105,6 @@ describe('UserManagement', () => {
   });
 
   // TODO: make this test case work
-  // eslint-disable-next-line jest/no-commented-out-tests
   // it('should render modal for create user when click the button', async () => {
   //   setup();
   //   const user = userEvent.setup();
