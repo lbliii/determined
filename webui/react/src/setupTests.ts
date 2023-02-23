@@ -1,6 +1,7 @@
 import Schema from 'async-validator';
 import { JSDOM } from 'jsdom';
 import 'micro-observables/batchingForReactDom';
+import { addHook } from 'pirates';
 import td from 'testdouble';
 import 'whatwg-fetch';
 
@@ -26,6 +27,20 @@ globalThis.document = dom.window.document;
 globalThis.Storage = dom.window.Storage;
 
 require('shared/prototypes');
+
+addHook(
+  () => {
+    return 'module.exports = new Proxy({}, { get(_target, prop) { return prop } })';
+  },
+  { exts: ['.css', '.scss'] },
+);
+
+addHook(
+  (_code, filename) => {
+    return `module.exports = "${filename}"`;
+  },
+  { exts: ['.svg'] },
+);
 
 Object.defineProperty(window, 'matchMedia', {
   value: () => ({
