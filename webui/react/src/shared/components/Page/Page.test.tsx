@@ -1,5 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import test from 'ava';
 import React from 'react';
+
+import { inDocument, waitFor } from 'test/utils';
 
 import Page, { Props } from './Page';
 
@@ -7,25 +10,27 @@ const HEADER = 'header of page';
 const CHILDREN = 'children of page';
 
 const setup = (props: Props) => {
-  const { container } = render(<Page {...props} />);
-  return container;
+  const container = document.createElement('div');
+  document.body.append(container);
+  return render(<Page {...props} />, { container });
 };
 
-describe('page functions', () => {
-  it('should display page with header component', () => {
-    setup({ headerComponent: <>{HEADER}</> });
-    expect(screen.getByText(HEADER)).toBeInTheDocument();
+test('should display page with header component', (t) => {
+  const { getByText } = setup({ headerComponent: <>{HEADER}</> });
+  inDocument(t, getByText(HEADER));
+});
+test('should display spinner when loading', async (t) => {
+  const { container } = setup({ loading: true });
+  await waitFor(t, (tt) => {
+    tt.is(container.getElementsByClassName('ant-spin ant-spin-spinning').length, 1);
   });
-  it('should display spinner when loading', () => {
-    const container = setup({ loading: true });
-    expect(container.getElementsByClassName('ant-spin ant-spin-spinning')).toHaveLength(1);
-  });
-  it('should display children', () => {
-    setup({ children: CHILDREN });
-    expect(screen.getByText(CHILDREN)).toBeInTheDocument();
-  });
-  it('should use correct class name', () => {
-    const container = setup({ bodyNoPadding: true, stickyHeader: true });
-    expect(container.getElementsByClassName('base bodyNoPadding stickyHeader')).toHaveLength(1);
-  });
+});
+test('should display children', (t) => {
+  const { getByText } = setup({ children: CHILDREN });
+  inDocument(t, getByText(CHILDREN));
+});
+
+test('should use correct class name', (t) => {
+  const { container } = setup({ bodyNoPadding: true, stickyHeader: true });
+  t.is(container.getElementsByClassName('base bodyNoPadding stickyHeader').length, 1);
 });
