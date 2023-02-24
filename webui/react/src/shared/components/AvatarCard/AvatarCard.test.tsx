@@ -1,70 +1,58 @@
-import { render, screen } from '@testing-library/react';
+import test from 'ava';
 import React from 'react';
 
 import { DarkLight } from 'shared/themes';
+import { hasClass, hasStyle, inDocument, renderInContainer } from 'test/utils';
 
 import AvatarCard, { Props } from './AvatarCard';
 
-const setup = (props: Props) => {
-  const view = render(<AvatarCard {...props} />);
-  return { view };
-};
+const setup = (props: Props) => renderInContainer(<AvatarCard {...props} />);
 
-describe('AvatarCard', () => {
-  describe('display name', () => {
-    it('should display one-word name', () => {
-      setup({ darkLight: DarkLight.Light, displayName: 'Admin' });
-      expect(screen.getByText('A')).toBeInTheDocument();
-      expect(screen.getByText('Admin')).toBeInTheDocument();
-    });
+test('should display one-word name', (t) => {
+  const { getByText } = setup({ darkLight: DarkLight.Light, displayName: 'Admin' });
+  inDocument(t, getByText('A'));
+  inDocument(t, getByText('Admin'));
+});
 
-    it('should display two-words name', () => {
-      setup({ darkLight: DarkLight.Light, displayName: 'Dio Brando' });
-      expect(screen.getByText('DB')).toBeInTheDocument();
-      expect(screen.getByText('Dio Brando')).toBeInTheDocument();
-    });
+test('should display two-words name', (t) => {
+  const { getByText } = setup({ darkLight: DarkLight.Light, displayName: 'Dio Brando' });
+  inDocument(t, getByText('DB'));
+  inDocument(t, getByText('Dio Brando'));
+});
 
-    it('should display three-words name', () => {
-      setup({ darkLight: DarkLight.Light, displayName: 'Gold Experience Requiem' });
-      expect(screen.getByText('GR')).toBeInTheDocument();
-      expect(screen.getByText('Gold Experience Requiem')).toBeInTheDocument();
-    });
+test('should display three-words name', (t) => {
+  const { getByText } = setup({
+    darkLight: DarkLight.Light,
+    displayName: 'Gold Experience Requiem',
   });
+  inDocument(t, getByText('GR'));
+  inDocument(t, getByText('Gold Experience Requiem'));
+});
 
-  describe('Light Dark Mode', () => {
-    it('should be light mode color', () => {
-      const { view } = setup({ darkLight: DarkLight.Light, displayName: 'Admin' });
-      expect(view.container.querySelector('#avatar')).toHaveStyle(
-        'background-color: hsl(290, 63%, 60%)',
-      );
-    });
+test('should be light mode color', (t) => {
+  const { container } = setup({ darkLight: DarkLight.Light, displayName: 'Admin' });
+  hasStyle(t, container.querySelector('#avatar'), { 'background-color': 'hsl(290, 63%, 60%)' });
+});
 
-    it('should be dark mode color', () => {
-      const { view } = setup({ darkLight: DarkLight.Dark, displayName: 'Admin' });
-      expect(view.container.querySelector('#avatar')).toHaveStyle(
-        'background-color: hsl(290, 63%, 38%)',
-      );
-    });
+test('should be dark mode color', (t) => {
+  const { container } = setup({ darkLight: DarkLight.Dark, displayName: 'Admin' });
+  hasStyle(t, container.querySelector('#avatar'), {
+    'background-color': 'hsl(290, 63%, 38%)',
   });
+});
 
-  describe('class name', () => {
-    it('should not have a base class name', () => {
-      const { view } = setup({ darkLight: DarkLight.Light, displayName: 'test' });
-      const { container } = view;
-      expect(container.children[0]).toHaveAttribute('class');
-      expect(container.children[0]).toHaveClass('base');
-    });
+test('should not have a base class name', async (t) => {
+  const { container } = setup({ darkLight: DarkLight.Light, displayName: 'test' });
+  await hasClass(t, container.firstElementChild, 'base');
+});
 
-    it('should have a class name', () => {
-      const { view } = setup({
-        className: 'test-class',
-        darkLight: DarkLight.Light,
-        displayName: 'test',
-      });
-      const { container } = view;
-      expect(container.children[0]).toHaveAttribute('class');
-      expect(container.children[0]).toHaveClass('base');
-      expect(container.children[0]).toHaveClass('test-class');
-    });
+test('should have a class name', async (t) => {
+  const { container } = setup({
+    className: 'test-class',
+    darkLight: DarkLight.Light,
+    displayName: 'test',
   });
+  const firstChild = container.firstElementChild;
+  await hasClass(t, firstChild, 'base');
+  await hasClass(t, firstChild, 'test-class');
 });
