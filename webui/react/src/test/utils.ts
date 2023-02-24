@@ -1,4 +1,4 @@
-import { waitFor as baseWaitFor } from '@testing-library/react';
+import { render as baseRender, waitFor as baseWaitFor } from '@testing-library/react';
 import type { ExecutionContext, Implementation, TryResult } from 'ava';
 
 const getStyleDeclaration = (css: Record<string, string>) => {
@@ -82,4 +82,11 @@ export const waitFor = (
     retVal.discard();
     throw retVal;
   }, ...args);
+};
+
+export const renderInContainer = (...params: Parameters<typeof baseRender>) => {
+  const [ui, options] = params;
+  const container = document.createElement('div');
+  document.body.append(container);
+  return baseRender(ui, { container, ...options });
 };

@@ -1,12 +1,11 @@
 import { StyleProvider } from '@ant-design/cssinjs';
-import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import test from 'ava';
 import React, { useEffect, useState } from 'react';
 import td from 'testdouble';
 
 import { noOp } from 'shared/utils/service';
-import { hasStyle, inDocument, notInDocument, waitFor } from 'test/utils';
+import { hasStyle, inDocument, notInDocument, renderInContainer, waitFor } from 'test/utils';
 
 import Spinner from './Spinner';
 
@@ -43,14 +42,11 @@ const SpinnerComponent = ({ spinning, handleButtonClick }: Props) => {
 
 const setup = async (spinning: boolean) => {
   const handleButtonClick = td.function(noOp);
-  const containingNode = document.createElement('div');
-  document.body.append(containingNode);
-  const result = render(
+  const result = renderInContainer(
     // apply css-in-js styles without the :when selector
     <StyleProvider container={document.body} hashPriority="high">
       <SpinnerComponent handleButtonClick={handleButtonClick} spinning={spinning} />,
     </StyleProvider>,
-    { container: containingNode },
   );
   await new Promise((resolve) => setTimeout(resolve, 10));
   return { handleButtonClick, ...result };

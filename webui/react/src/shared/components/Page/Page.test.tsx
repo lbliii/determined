@@ -1,19 +1,14 @@
-import { render } from '@testing-library/react';
 import test from 'ava';
 import React from 'react';
 
-import { inDocument, waitFor } from 'test/utils';
+import { inDocument, renderInContainer, waitFor } from 'test/utils';
 
 import Page, { Props } from './Page';
 
 const HEADER = 'header of page';
 const CHILDREN = 'children of page';
 
-const setup = (props: Props) => {
-  const container = document.createElement('div');
-  document.body.append(container);
-  return render(<Page {...props} />, { container });
-};
+const setup = (props: Props) => renderInContainer(<Page {...props} />);
 
 test('should display page with header component', (t) => {
   const { getByText } = setup({ headerComponent: <>{HEADER}</> });

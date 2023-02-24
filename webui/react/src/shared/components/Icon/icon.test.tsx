@@ -1,18 +1,15 @@
-import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import test from 'ava';
 import React from 'react';
 
-import { hasClass, hasStyle } from 'test/utils';
+import { hasClass, hasStyle, renderInContainer } from 'test/utils';
 
 import Icon, { IconSize } from './Icon';
 import type { Props } from './Icon';
 
 const setup = (props?: Props) => {
   const user = userEvent.setup();
-  const container = document.createElement('div');
-  document.body.append(container);
-  const view = render(<Icon {...props} />, { container });
+  const view = renderInContainer(<Icon {...props} />);
   return { user, view };
 };
 
