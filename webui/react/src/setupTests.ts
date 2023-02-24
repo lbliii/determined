@@ -1,4 +1,7 @@
+/* eslint-disable ava/no-ignored-test-files */
+import { cleanup } from '@testing-library/react';
 import Schema from 'async-validator';
+import test from 'ava';
 import { JSDOM } from 'jsdom';
 import 'micro-observables/batchingForReactDom';
 import { addHook } from 'pirates';
@@ -28,20 +31,6 @@ globalThis.Storage = dom.window.Storage;
 
 require('shared/prototypes');
 
-addHook(
-  () => {
-    return 'module.exports = new Proxy({}, { get(_target, prop) { return prop } })';
-  },
-  { exts: ['.css', '.scss'] },
-);
-
-addHook(
-  (_code, filename) => {
-    return `module.exports = "${filename}"`;
-  },
-  { exts: ['.svg'] },
-);
-
 Object.defineProperty(window, 'matchMedia', {
   value: () => ({
     addEventListener: td.function(),
@@ -55,3 +44,19 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 global.ResizeObserver = require('resize-observer-polyfill');
+
+test.after(cleanup);
+
+addHook(
+  () => {
+    return 'module.exports = new Proxy({}, { get(_target, prop) { if (prop === "__esModule") return false; return prop } })';
+  },
+  { exts: ['.css', '.scss'] },
+);
+
+addHook(
+  (_code, filename) => {
+    return `module.exports = "${filename}"`;
+  },
+  { exts: ['.svg'] },
+);

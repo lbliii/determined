@@ -1,17 +1,20 @@
 import { StyleProvider } from '@ant-design/cssinjs';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import test from 'ava';
 import React, { useEffect, useState } from 'react';
+import td from 'testdouble';
+
+import { noOp } from 'shared/utils/service';
+import { hasStyle, inDocument, notInDocument, waitFor } from 'test/utils';
 
 import Spinner from './Spinner';
-
-jest.useRealTimers(); // This should solve the flakyness around timming out
 
 const spinnerTextContent = 'Spinner Text Content';
 
 const user = userEvent.setup();
 interface Props {
-  handleButtonClick: jest.Mock<unknown, unknown[]>;
+  handleButtonClick: td.TestDouble<() => void>;
   spinning: boolean;
 }
 
@@ -39,68 +42,64 @@ const SpinnerComponent = ({ spinning, handleButtonClick }: Props) => {
 };
 
 const setup = async (spinning: boolean) => {
-  const handleButtonClick = jest.fn();
-  const { container } = render(
+  const handleButtonClick = td.function(noOp);
+  const containingNode = document.createElement('div');
+  document.body.append(containingNode);
+  const result = render(
     // apply css-in-js styles without the :when selector
     <StyleProvider container={document.body} hashPriority="high">
       <SpinnerComponent handleButtonClick={handleButtonClick} spinning={spinning} />,
     </StyleProvider>,
+    { container: containingNode },
   );
   await new Promise((resolve) => setTimeout(resolve, 10));
-  return { container, handleButtonClick };
+  return { handleButtonClick, ...result };
 };
 
-describe('Spinner', () => {
-  it('blocks inner content while spinning', async () => {
-    const { handleButtonClick } = await setup(true);
-    const button = await screen.findByTestId('inside-button');
-    let error = null;
-    try {
-      await waitFor(() => user.click(button));
-    } catch (e) {
-      error = e;
-    }
-    const spin = document.body.querySelector('.ant-spin');
-    expect(spin).toHaveStyle({ position: 'absolute' });
-    expect(error).not.toBeNull();
-    expect(handleButtonClick).toHaveBeenCalledTimes(0);
+test('blocks inner content while spinning', async (t) => {
+  const { container, findByTestId } = await setup(true);
+  const button = await findByTestId('inside-button');
+  await waitFor(t, (tt) => {
+    const spin = container.querySelector('.ant-spin');
+    hasStyle(tt, spin, { position: 'absolute' });
   });
+  await t.throwsAsync(user.click(button));
+});
 
-  it('doesnt block inner content when not spinning', async () => {
-    const { handleButtonClick } = await setup(false);
-    const button = screen.getByTestId('inside-button');
-    await user.click(button);
-    expect(handleButtonClick).toHaveBeenCalledTimes(1);
+test('doesnt block inner content when not spinning', async (t) => {
+  const { handleButtonClick, getByTestId } = await setup(false);
+  const button = getByTestId('inside-button');
+  await user.click(button);
+  t.is(td.explain(handleButtonClick).callCount, 1);
+});
+
+test('displays tip text when spinning', async (t) => {
+  const { findByText } = await setup(true);
+  inDocument(t, await findByText(spinnerTextContent));
+});
+
+test('doesnt display tip text when not spinning', async (t) => {
+  const { queryByText } = await setup(false);
+  notInDocument(t, queryByText(spinnerTextContent));
+});
+
+test('goes away when spinning is updated to false', async (t) => {
+  const { container, getByTestId } = await setup(true);
+
+  await waitFor(t, (tt) => {
+    inDocument(tt, container.getElementsByClassName('ant-spin-spinning')[0]);
   });
-
-  it('displays tip text when spinning', async () => {
-    await setup(true);
-    expect(await screen.findByText(spinnerTextContent)).toBeInTheDocument();
+  await user.click(getByTestId('toogle-button'));
+  await waitFor(t, (tt) => {
+    notInDocument(tt, container.getElementsByClassName('ant-spin-spinning')[0]);
   });
+});
 
-  it('doesnt display tip text when not spinning', async () => {
-    await setup(false);
-    expect(screen.queryByText(spinnerTextContent)).not.toBeInTheDocument();
-  });
-
-  it('goes away when spinning is updated to false', async () => {
-    const { container } = await setup(true);
-
-    await waitFor(() => {
-      expect(container.getElementsByClassName('ant-spin-spinning')[0]).toBeInTheDocument();
-    });
-    await user.click(screen.getByTestId('toogle-button'));
-    await waitFor(() => {
-      expect(container.getElementsByClassName('ant-spin-spinning')?.[0] ?? false).toBeFalsy();
-    });
-  });
-
-  it('appears when spinning is updated to false', async () => {
-    const { container } = await setup(false);
-    expect(container.getElementsByClassName('ant-spin-spinning')?.[0]).toBeFalsy();
-    await user.click(screen.getByTestId('toogle-button'));
-    await waitFor(() => {
-      expect(container.getElementsByClassName('ant-spin-spinning')[0]).toBeInTheDocument();
-    });
+test('appears when spinning is updated to false', async (t) => {
+  const { container, getByTestId } = await setup(false);
+  t.falsy(container.getElementsByClassName('ant-spin-spinning')?.[0]);
+  await user.click(getByTestId('toogle-button'));
+  await waitFor(t, (tt) => {
+    inDocument(tt, container.getElementsByClassName('ant-spin-spinning')[0]);
   });
 });
