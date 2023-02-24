@@ -18,7 +18,7 @@ const setup = (props?: Props) => {
 
 test('should display a default icon', async (t) => {
   const { view } = setup();
-  const firstChild = view.container.firstChild as Element;
+  const firstChild = view.container.firstElementChild;
   await hasClass(t, firstChild, 'base', 'icon-star', 'medium');
   hasStyle(t, firstChild, { 'font-size': 'var(--icon-medium)' });
 });
@@ -26,7 +26,7 @@ test('should display a default icon', async (t) => {
 const sizeMacroTest = test.macro({
   exec: async (t, size: IconSize) => {
     const { view } = setup({ size });
-    const firstChild = view.container.firstChild as Element;
+    const firstChild = view.container.firstElementChild;
     await hasClass(t, firstChild, 'base', 'icon-star', size);
     hasStyle(t, firstChild, { 'font-size': `var(--icon-${size})` });
   },
@@ -47,7 +47,7 @@ test(sizeMacroTest, 'mega');
 const nameMacroTest = test.macro({
   exec: async (t, name: string) => {
     const { view } = setup({ name });
-    const firstChild = view.container.firstChild as Element;
+    const firstChild = view.container.firstElementChild;
     await hasClass(t, firstChild, 'base', `icon-${name}`, 'medium');
   },
   title: (_providedTitle, name: string) => `should display a ${name} icon`,
