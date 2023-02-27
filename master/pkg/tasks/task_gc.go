@@ -71,7 +71,7 @@ func (g GCCkptSpec) ToTaskSpec() TaskSpec {
 					tar.TypeReg,
 				),
 			},
-			runDir,
+			RunDir,
 		),
 	}
 
