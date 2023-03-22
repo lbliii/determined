@@ -1,5 +1,6 @@
 import { Select, Typography } from 'antd';
 import { filter } from 'fp-ts/lib/Set';
+import { useObservable } from 'micro-observables';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import Form, { FormInstance } from 'components/kit/Form';
@@ -19,7 +20,7 @@ import {
 import { V1GroupDetails, V1GroupSearchResult } from 'services/api-ts-sdk';
 import useModal, { ModalHooks } from 'shared/hooks/useModal/useModal';
 import { ErrorType } from 'shared/utils/error';
-import { RolesStore } from 'stores/roles';
+import roleStore from 'stores/roles';
 import { DetailedUser, UserRole } from 'types';
 import { message } from 'utils/dialogApi';
 import handleError from 'utils/error';
@@ -50,11 +51,10 @@ interface Props {
 const ModalForm: React.FC<Props> = ({ form, users, group, groupRoles }) => {
   const rbacEnabled = useFeature().isOn('rbac');
   const { canModifyPermissions } = usePermissions();
+  const roles = useObservable(roleStore.roles);
   const [isLoading, setIsLoading] = useState(true);
 
   const [groupDetail, setGroupDetail] = useState<V1GroupDetails>();
-
-  const roles = RolesStore.useRoles();
 
   const fetchGroup = useCallback(async () => {
     if (group?.group.groupId) {

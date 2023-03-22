@@ -19,7 +19,7 @@ import {
 import Spinner from 'shared/components/Spinner';
 import useModal, { ModalHooks as Hooks } from 'shared/hooks/useModal/useModal';
 import { ErrorType } from 'shared/utils/error';
-import { RolesStore } from 'stores/roles';
+import roleStore from 'stores/roles';
 import usersStore from 'stores/users';
 import { DetailedUser, UserRole } from 'types';
 import { message } from 'utils/dialogApi';
@@ -58,9 +58,8 @@ interface Props {
 
 const ModalForm: React.FC<Props> = ({ form, user, viewOnly, roles }) => {
   const rbacEnabled = useFeature().isOn('rbac');
+  const knownRoles = useObservable(roleStore.roles);
   const { canAssignRoles, canModifyPermissions } = usePermissions();
-
-  const knownRoles = RolesStore.useRoles();
 
   useEffect(() => {
     form.setFieldsValue({
