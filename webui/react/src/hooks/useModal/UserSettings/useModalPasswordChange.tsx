@@ -5,7 +5,7 @@ import Input from 'components/kit/Input';
 import { login, setUserPassword } from 'services/api';
 import useModal, { ModalHooks } from 'shared/hooks/useModal/useModal';
 import { ErrorType } from 'shared/utils/error';
-import usersStore from 'stores/users';
+import userStore from 'stores/users';
 import { message } from 'utils/dialogApi';
 import handleError from 'utils/error';
 import { Loadable } from 'utils/loadable';
@@ -99,11 +99,7 @@ const ModalForm: React.FC<Props> = ({ form, username = '' }) => (
 
 const useModalPasswordChange = (): ModalHooks => {
   const [form] = Form.useForm();
-  const loadableUser = useObservable(usersStore.getCurrentUser());
-  const authUser = Loadable.match(loadableUser, {
-    Loaded: (user) => user,
-    NotLoaded: () => undefined,
-  });
+  const currentUser = Loadable.getOrElse(undefined, useObservable(userStore.currentUser));
 
   const { modalOpen: openOrUpdate, ...modalHook } = useModal();
 
@@ -114,7 +110,7 @@ const useModalPasswordChange = (): ModalHooks => {
 
     try {
       const password = form.getFieldValue(NEW_PASSWORD_NAME);
-      await setUserPassword({ password, userId: authUser?.id ?? 0 });
+      await setUserPassword({ password, userId: currentUser?.id ?? 0 });
       message.success(API_SUCCESS_MESSAGE);
       form.resetFields();
     } catch (e) {
@@ -124,19 +120,19 @@ const useModalPasswordChange = (): ModalHooks => {
       // Re-throw error to prevent modal from getting dismissed.
       throw e;
     }
-  }, [authUser?.id, form]);
+  }, [currentUser?.id, form]);
 
   const modalOpen = useCallback(() => {
     openOrUpdate({
       closable: true,
-      content: <ModalForm form={form} username={authUser?.username} />,
+      content: <ModalForm form={form} username={currentUser?.username} />,
       icon: null,
       okText: OK_BUTTON_LABEL,
       onCancel: handleCancel,
       onOk: handleOkay,
       title: <h5>{MODAL_HEADER_LABEL}</h5>,
     });
-  }, [authUser?.username, form, handleCancel, handleOkay, openOrUpdate]);
+  }, [currentUser?.username, form, handleCancel, handleOkay, openOrUpdate]);
 
   return { modalOpen, ...modalHook };
 };

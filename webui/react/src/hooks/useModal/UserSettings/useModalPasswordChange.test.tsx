@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import Button from 'components/kit/Button';
 import { setUserPassword as mockSetUserPassword } from 'services/api';
 import { V1LoginRequest } from 'services/api-ts-sdk';
 import { StoreProvider as UIProvider } from 'shared/contexts/stores/UI';
 import authStore from 'stores/auth';
-import usersStore from 'stores/users';
+import userStore from 'stores/users';
 import { DetailedUser } from 'types';
 
 vi.useFakeTimers();
@@ -62,13 +62,12 @@ const user = userEvent.setup({ delay: null });
 
 const Container: React.FC = () => {
   const { contextHolder, modalOpen } = useModalPasswordChange();
-  const [canceler] = useState(new AbortController());
 
   const loadUsers = useCallback(async () => {
-    await usersStore.ensureUsersFetched(canceler);
+    await userStore.fetchUsers();
     authStore.setAuth({ isAuthenticated: true });
-    usersStore.updateCurrentUser(CURRENT_USER.id);
-  }, [canceler]);
+    userStore.updateCurrentUser(CURRENT_USER);
+  }, []);
 
   useEffect(() => {
     loadUsers();
