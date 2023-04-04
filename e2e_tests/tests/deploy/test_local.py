@@ -23,7 +23,7 @@ def det_deploy(subcommand: List) -> None:
         "deploy",
         "local",
     ] + subcommand
-    subprocess.run(command)
+    subprocess.run(command, check=True)
 
 
 def cluster_up(arguments: List, delete_db: bool = True) -> None:
