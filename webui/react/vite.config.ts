@@ -32,6 +32,24 @@ const portableFetchFix = (): Plugin => ({
   },
 });
 
+const devServerRedirects = (redirects: Record<string, string>): Plugin => ({
+  name: 'dev-server-redirects',
+  configureServer(server) {
+    Object.entries(redirects).forEach(([from, to]) => {
+      server.middlewares.use(from, (req, res, next) => {
+        if (req.originalUrl === from) {
+          res.writeHead(302, {
+            Location: to
+          })
+          res.end()
+        } else {
+          next()
+        }
+      })
+    })
+  }
+})
+
 const publicUrlBaseHref = (): Plugin => {
   let config: UserConfig;
   return {
@@ -112,6 +130,9 @@ export default defineConfig(({ mode }) => ({
     (mode !== 'test' && checker({
       typescript: true,
     })),
+    devServerRedirects({
+      '/design': '/design/'
+    }),
     cspHtml({
       cspRules: {
         'frame-src': ["'self'", 'netlify.determined.ai'],
